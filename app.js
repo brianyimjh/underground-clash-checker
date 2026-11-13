@@ -154,6 +154,14 @@ require([
   view.on("double-click", (event) => {
     if (!drawing) return;
     event.stopPropagation(); // don't zoom
+    // The view doesn't always fire "click" for a double-click, so add the
+    // final point here unless it's already the last one.
+    if (event.mapPoint) {
+      const pt = [event.mapPoint.longitude, event.mapPoint.latitude];
+      const last = routeCoords[routeCoords.length - 1];
+      const same = last && Math.abs(last[0] - pt[0]) < 1e-7 && Math.abs(last[1] - pt[1]) < 1e-7;
+      if (!same) routeCoords.push(pt);
+    }
     drawBtn.click();
   });
 
