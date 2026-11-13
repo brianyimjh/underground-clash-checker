@@ -1,0 +1,11 @@
+{
+  "name": "underground-clash-checker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "3D GIS learning prototype: underground utilities and clash detection",
+  "scripts": {
+    "start": "npx serve .",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,266 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "TEL-01",
+    "type": "telecom",
+    "status": "existing",
+    "diameter_m": 0.15,
+    "depth_m": 0.8
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8431525,
+      1.2795359
+     ],
+     [
+      103.8458475,
+      1.2795359
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "TEL-02",
+    "type": "telecom",
+    "status": "existing",
+    "diameter_m": 0.15,
+    "depth_m": 0.9
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8444641,
+      1.278422
+     ],
+     [
+      103.8444641,
+      1.280578
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "PWR-01",
+    "type": "power",
+    "status": "existing",
+    "diameter_m": 0.2,
+    "depth_m": 1.2
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8431525,
+      1.2794731
+     ],
+     [
+      103.8458475,
+      1.2794731
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "PWR-02",
+    "type": "power",
+    "status": "existing",
+    "diameter_m": 0.2,
+    "depth_m": 1.3
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8445449,
+      1.278422
+     ],
+     [
+      103.8445449,
+      1.2798593
+     ],
+     [
+      103.8447695,
+      1.280039
+     ],
+     [
+      103.845578,
+      1.280039
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "WAT-01",
+    "type": "water",
+    "status": "existing",
+    "diameter_m": 0.4,
+    "depth_m": 1.5
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8431525,
+      1.279509
+     ],
+     [
+      103.8458475,
+      1.279509
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "WAT-02",
+    "type": "water",
+    "status": "existing",
+    "diameter_m": 0.3,
+    "depth_m": 1.6
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.844509,
+      1.278422
+     ],
+     [
+      103.844509,
+      1.280578
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "GAS-01",
+    "type": "gas",
+    "status": "existing",
+    "diameter_m": 0.15,
+    "depth_m": 1.1
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8431525,
+      1.2794461
+     ],
+     [
+      103.8448593,
+      1.2794461
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "SEW-01",
+    "type": "sewer",
+    "status": "existing",
+    "diameter_m": 0.6,
+    "depth_m": 4
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.844482,
+      1.278422
+     ],
+     [
+      103.844482,
+      1.280578
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "SEW-02",
+    "type": "sewer",
+    "status": "existing",
+    "diameter_m": 0.6,
+    "depth_m": 3.5
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8431525,
+      1.279491
+     ],
+     [
+      103.8458475,
+      1.279491
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "DRN-01",
+    "type": "drainage",
+    "status": "existing",
+    "diameter_m": 1,
+    "depth_m": 2.2
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.8431525,
+      1.2795719
+     ],
+     [
+      103.8458475,
+      1.2795719
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "PWR-03",
+    "type": "power",
+    "status": "planned",
+    "diameter_m": 0.25,
+    "depth_m": 1.4
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      103.843961,
+      1.2787814
+     ],
+     [
+      103.843961,
+      1.2802186
+     ]
+    ]
+   }
+  }
+ ]
+}
