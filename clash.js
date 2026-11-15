@@ -65,6 +65,19 @@
     return min;
   }
 
+  // Returns a list of error messages; empty means the inputs are usable.
+  // Without this, a blank field becomes NaN, every comparison is false, and the
+  // check silently reports "no clashes".
+  function validateInputs({ depth_m, diameter_m, rules }) {
+    const errors = [];
+    const fin = (v) => typeof v === "number" && Number.isFinite(v);
+    if (!fin(depth_m) || depth_m < 0) errors.push("Depth must be a number ≥ 0.");
+    if (!fin(diameter_m) || diameter_m <= 0) errors.push("Diameter must be a number > 0.");
+    if (!fin(rules.horizontal_m) || rules.horizontal_m < 0) errors.push("Min horizontal gap must be a number ≥ 0.");
+    if (!fin(rules.vertical_m) || rules.vertical_m < 0) errors.push("Min vertical gap must be a number ≥ 0.");
+    return errors;
+  }
+
   /**
    * @param proposed  { coords: [[lon,lat],...], depth_m, diameter_m }
    * @param utilities [{ id, type, coords, depth_m, diameter_m, ... }]
@@ -72,6 +85,9 @@
    * @returns array of { utility, horizontalGap, verticalGap, clash }, closest first
    */
   function checkClashes(proposed, utilities, rules) {
+    if (!proposed.coords || proposed.coords.length < 2) throw new Error("Route needs at least two points.");
+    const errors = validateInputs({ depth_m: proposed.depth_m, diameter_m: proposed.diameter_m, rules });
+    if (errors.length) throw new Error(errors.join(" "));
     const [lon0, lat0] = proposed.coords[0];
     const project = makeProjector(lat0, lon0);
     const r1 = proposed.diameter_m / 2;
@@ -88,7 +104,7 @@
       .sort((x, y) => x.horizontalGap - y.horizontalGap);
   }
 
-  const api = { checkClashes, polylineDistance, makeProjector };
+  const api = { checkClashes, polylineDistance, makeProjector, validateInputs };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.Clash = api;
 })(typeof window !== "undefined" ? window : globalThis);

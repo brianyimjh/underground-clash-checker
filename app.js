@@ -125,6 +125,7 @@ require([
     drawing = !drawing;
     drawBtn.classList.toggle("active", drawing);
     drawBtn.textContent = drawing ? "Finish drawing" : "Start drawing";
+    view.container.style.cursor = drawing ? "crosshair" : "";
     if (drawing) {
       routeCoords = [];
       redrawRoute();
@@ -138,17 +139,37 @@ require([
     drawing = false;
     drawBtn.classList.remove("active");
     drawBtn.textContent = "Start drawing";
+    view.container.style.cursor = "";
+    view.closePopup();
     redrawRoute();
     resetUtilityColors();
     document.getElementById("results").innerHTML = "";
     document.getElementById("summary").textContent = "Draw a route to run the check.";
   });
 
+  const sameAsLast = (pt) => {
+    const last = routeCoords[routeCoords.length - 1];
+    return last && Math.abs(last[0] - pt[0]) < 1e-7 && Math.abs(last[1] - pt[1]) < 1e-7;
+  };
+
   view.on("click", (event) => {
     if (!drawing || !event.mapPoint) return;
     event.stopPropagation(); // don't open popups while drawing
-    routeCoords.push([event.mapPoint.longitude, event.mapPoint.latitude]);
+    const pt = [event.mapPoint.longitude, event.mapPoint.latitude];
+    if (!sameAsLast(pt)) routeCoords.push(pt); // a double-click also fires clicks
     redrawRoute();
+  });
+
+  // While drawing: Backspace removes the last point, Escape cancels.
+  document.addEventListener("keydown", (e) => {
+    if (!drawing || e.target.matches("input")) return;
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      routeCoords.pop();
+      redrawRoute();
+    } else if (e.key === "Escape") {
+      document.getElementById("clearBtn").click();
+    }
   });
 
   view.on("double-click", (event) => {
@@ -158,9 +179,7 @@ require([
     // final point here unless it's already the last one.
     if (event.mapPoint) {
       const pt = [event.mapPoint.longitude, event.mapPoint.latitude];
-      const last = routeCoords[routeCoords.length - 1];
-      const same = last && Math.abs(last[0] - pt[0]) < 1e-7 && Math.abs(last[1] - pt[1]) < 1e-7;
-      if (!same) routeCoords.push(pt);
+      if (!sameAsLast(pt)) routeCoords.push(pt);
     }
     drawBtn.click();
   });
@@ -177,7 +196,10 @@ require([
   function redrawRoute(hasClash = false) {
     proposedLayer.removeAll();
     if (routeCoords.length < 1) return;
-    const { depth_m, diameter_m } = currentInputs();
+    let { depth_m, diameter_m } = currentInputs();
+    // Keep drawing usable while a field is being edited.
+    if (!Number.isFinite(depth_m)) depth_m = 0;
+    if (!(diameter_m > 0)) diameter_m = 0.25;
 
     // The route at its design depth...
     if (routeCoords.length >= 2) {
@@ -215,27 +237,52 @@ require([
     });
   }
 
+  const summaryEl = document.getElementById("summary");
+  const resultsEl = document.getElementById("results");
+
+  function showMessage(html) {
+    summaryEl.innerHTML = html;
+    resultsEl.innerHTML = "";
+  }
+
   function runCheck() {
-    if (routeCoords.length < 2) return;
+    if (routeCoords.length < 2) {
+      resetUtilityColors();
+      redrawRoute();
+      showMessage(routeCoords.length
+        ? `<span class="badge clash">Add at least two points.</span> Press Start drawing and click the ground.`
+        : "Draw a route to run the check.");
+      return;
+    }
     const { depth_m, diameter_m, rules } = currentInputs();
+    const errors = Clash.validateInputs({ depth_m, diameter_m, rules });
+    if (errors.length) {
+      resetUtilityColors();
+      redrawRoute();
+      showMessage(`<span class="badge clash">Check not run.</span> ${errors.join(" ")}`);
+      return;
+    }
     const results = Clash.checkClashes({ coords: routeCoords, depth_m, diameter_m }, utilities, rules);
 
     resetUtilityColors();
     results.filter((r) => r.clash).forEach((r) => {
-      r.utility.graphic.symbol = pipeSymbol(CLASH_COLOR, r.utility.diameter_m);
+      const u = r.utility;
+      u.graphic.symbol = pipeSymbol(CLASH_COLOR, u.diameter_m, u.status === "planned");
     });
 
     const clashes = results.filter((r) => r.clash).length;
     redrawRoute(clashes > 0);
-    document.getElementById("summary").innerHTML = clashes
-      ? `<span class="badge clash">${clashes} clash(es) found.</span> Try another depth or route.`
+    summaryEl.innerHTML = clashes
+      ? `<span class="badge clash">${clashes} clash${clashes > 1 ? "es" : ""} found.</span> Try another depth or route.`
       : `<span class="badge ok">No clashes.</span> Route meets the clearance rules.`;
 
-    const rows = results
-      .slice(0, 10)
+    // Always list every clash, then pad with the nearest non-clashing utilities.
+    const shown = results.filter((r, i) => r.clash || i < 10);
+    lastResults = shown;
+    const rows = shown
       .map(
-        (r) => `<tr class="${r.clash ? "clash" : ""}">
-          <td>${r.utility.id}</td>
+        (r, i) => `<tr class="${r.clash ? "clash" : ""}" data-i="${i}" tabindex="0" title="Zoom to ${r.utility.id}">
+          <td>${r.utility.id}${r.utility.status === "planned" ? " <small>(planned)</small>" : ""}</td>
           <td>${r.utility.depth_m} m</td>
           <td>${fmt(r.horizontalGap)}</td>
           <td>${fmt(r.verticalGap)}</td>
@@ -243,9 +290,24 @@ require([
         </tr>`
       )
       .join("");
-    document.getElementById("results").innerHTML =
+    resultsEl.innerHTML =
       `<tr><th>ID</th><th>Depth</th><th>H gap</th><th>V gap</th><th></th></tr>${rows}`;
   }
+
+  // Click (or Enter on) a result row to fly to that utility and open its popup.
+  let lastResults = [];
+  function zoomToRow(tr) {
+    const r = tr && lastResults[tr.dataset.i];
+    if (!r) return;
+    const g = r.utility.graphic;
+    view.goTo({ target: g, tilt: 65 }).then(() =>
+      view.openPopup({ features: [g], location: g.geometry.extent.center })
+    ).catch(() => {});
+  }
+  resultsEl.addEventListener("click", (e) => zoomToRow(e.target.closest("tr[data-i]")));
+  resultsEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") zoomToRow(e.target.closest("tr[data-i]"));
+  });
 
   const fmt = (m) => (m < 0 ? "overlap" : `${m.toFixed(2)} m`);
 

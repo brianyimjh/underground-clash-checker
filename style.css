@@ -25,3 +25,7 @@ body { font-family: system-ui, sans-serif; }
 
 #legend { margin-top: 6px; }
 .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+#results tr[data-i] { cursor: pointer; }
+#results tr[data-i]:hover td, #results tr[data-i]:focus td { background: #eef4ff; outline: none; }
+#results small { color: #777; }
+kbd { font: 11px ui-monospace, monospace; border: 1px solid #ccc; border-radius: 3px; padding: 0 3px; background: #f6f6f6; }

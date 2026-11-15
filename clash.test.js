@@ -1,7 +1,7 @@
 // Run with: node --test
 const test = require("node:test");
 const assert = require("node:assert");
-const { checkClashes, polylineDistance, makeProjector } = require("./clash.js");
+const { checkClashes, polylineDistance, makeProjector, validateInputs } = require("./clash.js");
 
 const LAT = 1.2795;
 const LON = 103.8445;
@@ -49,4 +49,22 @@ test("results are sorted closest first", () => {
   const near = pipe("NEAR", [[LON, LAT + 3 * M], [LON + 40 * M, LAT + 3 * M]], 1.5);
   const results = checkClashes(proposed, [far, near], rules);
   assert.deepStrictEqual(results.map((r) => r.utility.id), ["NEAR", "FAR"]);
+});
+
+test("validateInputs rejects missing or invalid numbers", () => {
+  const ok = { depth_m: 1.5, diameter_m: 0.3, rules: { horizontal_m: 0.5, vertical_m: 0.3 } };
+  assert.deepStrictEqual(validateInputs(ok), []);
+  assert.strictEqual(validateInputs({ ...ok, depth_m: NaN }).length, 1);
+  assert.strictEqual(validateInputs({ ...ok, diameter_m: 0 }).length, 1);
+  assert.strictEqual(validateInputs({ ...ok, rules: { horizontal_m: -1, vertical_m: NaN } }).length, 2);
+});
+
+test("checkClashes throws on invalid inputs instead of reporting no clashes", () => {
+  const proposed = { coords: [[LON, LAT], [LON + 40 * M, LAT]], depth_m: NaN, diameter_m: 0.3 };
+  const existing = pipe("W1", [[LON + 20 * M, LAT - 20 * M], [LON + 20 * M, LAT + 20 * M]], 1.5);
+  assert.throws(() => checkClashes(proposed, [existing], rules));
+});
+
+test("checkClashes needs at least two route points", () => {
+  assert.throws(() => checkClashes({ coords: [[LON, LAT]], depth_m: 1.5, diameter_m: 0.3 }, [], rules));
 });
